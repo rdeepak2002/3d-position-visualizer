@@ -9,7 +9,11 @@ let handleRequest = (request, response) => {
     response.writeHead(200, {
         'Content-Type': 'text/html'
     });
-    const filePath = path.join('public', request.url);
+    let url = request.url;
+    if (url === '' || url === '/') {
+        url = 'index.html';
+    }
+    const filePath = path.join(__dirname, 'public', url);
     fs.readFile(filePath, null, function (error, data) {
         if (error) {
             console.error(`Unable to retrieve file ${filePath}`);
