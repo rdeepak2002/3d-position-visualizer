@@ -44,6 +44,10 @@ socket.on("connect", () => {
     console.log("Connected to socket server");
 });
 
+socket.on("device-data", (data) => {
+    console.log('received data from socket', data);
+});
+
 function initWebglOverlayView(map) {
     let scene, renderer, camera, loader;
     const webglOverlayView = new google.maps.WebGLOverlayView();
