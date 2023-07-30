@@ -12,7 +12,17 @@ const MODEL_SCALE = 2;
 
 import { GLTFLoader } from "GLTFLoader";
 let map;
-const socket = io();
+
+const urlParams = new URLSearchParams(window?.location?.search);
+const socketUrl = urlParams?.get('socket_url');
+let socket;
+if (socketUrl) {
+    socket = io(socketUrl);
+    console.log("Using socket URL", socketUrl);
+} else {
+    socket = io();
+    console.log("Using current host as socket URL");
+}
 
 const mapOptions = {
     tilt: 67.5,
