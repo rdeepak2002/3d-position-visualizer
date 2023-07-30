@@ -45,7 +45,22 @@ socket.on("connect", () => {
 });
 
 socket.on("device-data", (data) => {
-    console.log('received data from socket', data);
+    const lat = data?.Position?.x;
+    const lng = data?.Position?.y;
+    const altitude = data?.Position?.z;
+
+    console.log('Received data from socket (x is lat, y is lng, z is altitude)', data);
+    if (lat && lng && altitude) {
+        latLngAltitudeLiteral.lat = lat;
+        latLngAltitudeLiteral.lng = lng;
+        latLngAltitudeLiteral.altitude = altitude;
+
+        const center = { lat: lat, lng: lng };
+        mapOptions.center = center;
+        map.moveCamera({ center });
+    } else {
+        console.error("Unable to get lat lng altitude", lat, lng, altitude);
+    }
 });
 
 function initWebglOverlayView(map) {
