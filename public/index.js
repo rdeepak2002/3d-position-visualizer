@@ -6,11 +6,14 @@ import {
     Scene,
     WebGLRenderer,
 } from "three";
+import { io } from "socket.io-client";
 
 const MODEL_SCALE = 2;
 
 import { GLTFLoader } from "GLTFLoader";
 let map;
+const socket = io();
+
 const mapOptions = {
     tilt: 67.5,
     heading: 0,
@@ -36,6 +39,10 @@ let latLngAltitudeLiteral = {
     lng: mapOptions.center.lng,
     altitude: 10
 };
+
+socket.on("connect", () => {
+    console.log("Connected to socket server");
+});
 
 function initWebglOverlayView(map) {
     let scene, renderer, camera, loader;
@@ -77,20 +84,7 @@ function initWebglOverlayView(map) {
         loader.manager.onLoad = () => {
             renderer.setAnimationLoop(() => {
                 webglOverlayView.requestRedraw();
-
-                latLngAltitudeLiteral.altitude += 0.1;
-
-                console.log(latLngAltitudeLiteral.altitude);
-
-                // const { tilt, heading, zoom } = mapOptions;
-
-                // map.moveCamera({ tilt, heading, zoom });
-
-                // const { tilt, heading, zoom } = mapOptions;
-                //
-                // map.moveCamera({ tilt, heading, zoom });
-
-                // mapOptions.heading += 0.1;
+                // latLngAltitudeLiteral.altitude += 0.1;
             });
         };
     };
