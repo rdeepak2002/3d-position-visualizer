@@ -1,11 +1,23 @@
-<!doctype html>
 <html>
 <head>
     <title>3D Position Visualizer</title>
+    <script src="https://polyfill.io/v3/polyfill.min.js?features=default"></script>
+    <script type="importmap">
+        {
+            "imports": {
+                "three": "https://unpkg.com/three@0.138.0/build/three.module.js",
+                "GLTFLoader": "https://unpkg.com/three@0.138.0/examples/jsm/loaders/GLTFLoader.js"
+            }
+        }
+    </script>
+    <link rel="stylesheet" type="text/css" href="./style.css" />
+    <script type="module" src="./index.js"></script>
 </head>
-<body style='margin: 0; padding: 0; width: 100%; min-height: 100vh;'>
-<div id='map' style='min-width: 100%; min-height: 100vh;'></div>
-<script src='./import-maps.js'></script>
-<script src='./main.js'></script>
+<body>
+<div id="map" class="map"></div>
+<script
+        src="https://maps.googleapis.com/maps/api/js?key=AIzaSyCGrVl_1tcAnFz77pqjSyW3FTjpk-L9-0Y&callback=initMap&v=beta"
+        defer
+></script>
 </body>
 </html>
