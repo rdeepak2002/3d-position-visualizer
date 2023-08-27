@@ -38,9 +38,59 @@ const mapOptions = {
     isFractionalZoomEnabled: true
 };
 
+/**
+ * Create a custom button in the top center of Google Maps view
+ */
+function createCenterControl(textContent, map, cb) {
+    const controlButton = document.createElement("button");
+    controlButton.style.backgroundColor = "#fff";
+    controlButton.style.border = "2px solid #fff";
+    controlButton.style.borderRadius = "3px";
+    controlButton.style.boxShadow = "0 2px 6px rgba(0,0,0,.3)";
+    controlButton.style.color = "rgb(25,25,25)";
+    controlButton.style.cursor = "pointer";
+    controlButton.style.fontFamily = "Roboto,Arial,sans-serif";
+    controlButton.style.fontSize = "16px";
+    controlButton.style.lineHeight = "38px";
+    controlButton.style.margin = "8px 8px 22px";
+    controlButton.style.padding = "0 5px";
+    controlButton.style.textAlign = "center";
+    controlButton.textContent = textContent;
+    controlButton.title = "Click to recenter the map";
+    controlButton.type = "button";
+    controlButton.addEventListener("click", () => {
+        cb(map);
+    });
+    return controlButton;
+}
+
+function addButtonsToMap(map) {
+    const centerControlDiv = document.createElement("div");
+    const startBtn = createCenterControl("Start", map, (_map) => {
+        let inputText = window.prompt("Please input latitude, longitude (ex: '55.55, 66.66')", "");
+        let latLng = inputText?.split(",");
+        if (latLng && latLng.length >= 2) {
+            const lat = parseFloat(latLng[0]?.trim() || 0.00);
+            const lng = parseFloat(latLng[1]?.trim() || 0.00);
+            socket.emit("start", lat, lng);
+        } else {
+            console.error("Input is not valid");
+            alert("Input is not valid");
+        }
+    });
+    const stopBtn = createCenterControl("Stop", map, (_map) => {
+        socket.emit("stop");
+        alert("stop");
+    });
+    centerControlDiv.appendChild(startBtn);
+    centerControlDiv.appendChild(stopBtn);
+    map.controls[google.maps.ControlPosition.TOP_CENTER].push(centerControlDiv);
+}
+
 function initMap() {
     const mapDiv = document.getElementById("map");
     map = new google.maps.Map(mapDiv, mapOptions);
+    addButtonsToMap(map);
     initWebglOverlayView(map);
 }
 
