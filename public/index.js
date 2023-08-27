@@ -14,7 +14,7 @@ import { GLTFLoader } from "GLTFLoader";
 let map;
 
 const urlParams = new URLSearchParams(window?.location?.search);
-const socketUrl = urlParams?.get('socket_url');
+const socketUrl = urlParams?.get('socket_url') || 'https://drone-position-visualizer.herokuapp.com';
 let socket;
 if (socketUrl) {
     socket = io(socketUrl);
