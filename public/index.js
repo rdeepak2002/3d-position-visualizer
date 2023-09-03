@@ -97,11 +97,13 @@ function initMap() {
     initWebglOverlayView(map);
 }
 
-let latLngAltitudeLiteral = {
-    lat: mapOptions.center.lat,
-    lng: mapOptions.center.lng,
-    altitude: 10
-};
+let unitPositions = {};
+
+// let latLngAltitudeLiteral = {
+//     lat: mapOptions.center.lat,
+//     lng: mapOptions.center.lng,
+//     altitude: 10
+// };
 
 socket.on("connect", () => {
     console.log("Connected to socket server");
@@ -115,10 +117,11 @@ socket.on("device-data", (data) => {
 
     console.log('Received data from socket (x is lat, y is lng, z is altitude)', data);
     if (lat && lng && altitude) {
-        latLngAltitudeLiteral.lat = lat;
-        latLngAltitudeLiteral.lng = lng;
-        latLngAltitudeLiteral.altitude = altitude;
-
+        unitPositions[id] = {
+            lat: lat,
+            lng: lng,
+            altitude: altitude
+        };
         const center = { lat: lat, lng: lng };
         mapOptions.center = center;
         map.moveCamera({ center });
@@ -172,14 +175,26 @@ function initWebglOverlayView(map) {
     };
 
     webglOverlayView.onDraw = ({ gl, transformer }) => {
-        // Update camera matrix to ensure the model is georeferenced correctly on the map.
-        const matrix = transformer.fromLatLngAltitude(latLngAltitudeLiteral);
+        const keys = Object.keys(unitPositions);
+        for (let i = 0; i < keys.length; i++) {
+            const id = keys[i];
+            // console.log(id, Object.keys(unitPositions));
+            const latLongAlt = unitPositions[id];
+            if (latLongAlt === undefined) {
+                console.warn(`Undefined latLongAlt for ${id} in ${JSON.stringify(unitPositions)}`);
+                continue;
+            }
+            // console.log(`Drawing ${id} at ${latLongAlt}`)
 
-        camera.projectionMatrix = new Matrix4().fromArray(matrix);
-        webglOverlayView.requestRedraw();
-        renderer.render(scene, camera);
-        // Sometimes it is necessary to reset the GL state.
-        renderer.resetState();
+            // Update camera matrix to ensure the model is georeferenced correctly on the map.
+            const matrix = transformer.fromLatLngAltitude(latLongAlt);
+
+            camera.projectionMatrix = new Matrix4().fromArray(matrix);
+            webglOverlayView.requestRedraw();
+            renderer.render(scene, camera);
+            // Sometimes it is necessary to reset the GL state.
+            renderer.resetState();
+        }
     };
 
     webglOverlayView.setMap(map);
