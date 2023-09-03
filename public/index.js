@@ -67,20 +67,23 @@ function createCenterControl(textContent, map, cb) {
 function addButtonsToMap(map) {
     const centerControlDiv = document.createElement("div");
     const startBtn = createCenterControl("Start", map, (_map) => {
-        let inputText = window.prompt("Please input latitude, longitude (ex: '55.55, 66.66')", "");
-        let latLng = inputText?.split(",");
-        if (latLng && latLng.length >= 2) {
-            const lat = parseFloat(latLng[0]?.trim() || 0.00);
-            const lng = parseFloat(latLng[1]?.trim() || 0.00);
-            socket.emit("start", lat, lng);
+        let inputText = window.prompt("Please input latitude, longitude, altitude, and unit ID (ex: '55.55, 66.66, 77.77, unit-1')", "");
+        let data = inputText?.split(",");
+        if (data && data.length >= 4) {
+            const lat = parseFloat(data[0]?.trim() || 0.00);
+            const lng = parseFloat(data[1]?.trim() || 0.00);
+            const alt = parseFloat(data[2]?.trim() || 0.00);
+            const id = data[3]?.trim() || "no_id";
+            socket.emit("start", lat, lng, alt, id);
         } else {
             console.error("Input is not valid");
             alert("Input is not valid");
         }
     });
     const stopBtn = createCenterControl("Stop", map, (_map) => {
-        socket.emit("stop");
-        alert("stop");
+        let inputText = window.prompt("Please input unit ID (ex: 'unit-1')", "");
+        const id = inputText?.trim() || "no_id";
+        socket.emit("stop", id);
     });
     centerControlDiv.appendChild(startBtn);
     centerControlDiv.appendChild(stopBtn);
@@ -108,6 +111,7 @@ socket.on("device-data", (data) => {
     const lat = data?.Position?.x;
     const lng = data?.Position?.y;
     const altitude = data?.Position?.z;
+    const id = data?.ID;
 
     console.log('Received data from socket (x is lat, y is lng, z is altitude)', data);
     if (lat && lng && altitude) {
@@ -163,7 +167,6 @@ function initWebglOverlayView(map) {
         loader.manager.onLoad = () => {
             renderer.setAnimationLoop(() => {
                 webglOverlayView.requestRedraw();
-                // latLngAltitudeLiteral.altitude += 0.1;
             });
         };
     };
