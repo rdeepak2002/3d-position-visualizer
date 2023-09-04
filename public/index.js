@@ -5,6 +5,11 @@ import {
     PerspectiveCamera,
     Scene,
     WebGLRenderer,
+    SphereGeometry,
+    MeshBasicMaterial,
+    Mesh,
+    Texture,
+    PlaneGeometry
 } from "three";
 import { io } from "socket.io-client";
 
@@ -130,34 +135,72 @@ socket.on("device-data", (data) => {
     }
 });
 
+function hslToHex(h, s, l) {
+    l /= 100;
+    const a = s * Math.min(l, 1 - l) / 100;
+    const f = n => {
+        const k = (n + h / 30) % 12;
+        const color = l - a * Math.max(Math.min(k - 3, 9 - k, 1), -1);
+        return Math.round(255 * color).toString(16).padStart(2, '0');   // convert to Hex and prefix "0" if needed
+    };
+    return `0x${f(0)}${f(8)}${f(4)}`;
+}
+
+function getColorFromText(stringInput) {
+    if (stringInput === 'unit-1' || stringInput === 'unit-unit-1') {
+        return parseInt('0x59c759', 16);
+    } else if (stringInput === 'unit-2' || stringInput === 'unit-unit-2') {
+        return parseInt('0xff5757', 16);
+    } else if (stringInput === 'unit-3' || stringInput === 'unit-unit-3') {
+        return parseInt('0x5e00ff', 16);
+    } else if (stringInput === 'unit-4' || stringInput === 'unit-unit-4') {
+        return parseInt('0x689096', 16);
+    } else if (stringInput === 'unit-5' || stringInput === 'unit-unit-5') {
+        return parseInt('0xdbc7ff', 16);
+    }
+    let stringUniqueHash = [...stringInput].reduce((acc, char) => {
+        return char.charCodeAt(0) + ((acc << 5) - acc);
+    }, 0);
+    return parseInt(hslToHex(stringUniqueHash % 360, 0.95, 0.35), 16);
+}
+
 function initWebglOverlayView(map) {
-    let scene, renderer, camera, loader;
+    let scene, renderer, camera, loader, model3D;
     const webglOverlayView = new google.maps.WebGLOverlayView();
 
     webglOverlayView.onAdd = () => {
-        // Set up the scene.
-        scene = new Scene();
         camera = new PerspectiveCamera();
 
-        const ambientLight = new AmbientLight(0xffffff, 0.75); // Soft white light.
-
-        scene.add(ambientLight);
-
-        const directionalLight = new DirectionalLight(0xffffff, 0.25);
-
-        directionalLight.position.set(0.5, -1, 0.5);
-        scene.add(directionalLight);
-        // Load the model.
+        // Set up the scene.
+        scene = new Scene();
+        // const ambientLight = new AmbientLight(0xffffff, 0.75); // Soft white light.
+        // scene.add(ambientLight);
+        // const directionalLight = new DirectionalLight(0xffffff, 0.25);
+        // directionalLight.position.set(0.5, -1, 0.5);
+        // scene.add(directionalLight);
+        // // Load the model.
         loader = new GLTFLoader();
-
-        const source =
-            "./firefighter/scene.gltf";
-
-        loader.load(source, (gltf) => {
-            gltf.scene.rotation.x = Math.PI / 2;
-            gltf.scene.scale.set(MODEL_SCALE, MODEL_SCALE, MODEL_SCALE);
-            scene.add(gltf.scene);
-        });
+        // // status
+        // {
+        //     // sphere
+        //     {
+        //         const geometry = new SphereGeometry( 0.5, 32, 16 );
+        //         const material = new MeshBasicMaterial( { color: 0xffff00 } );
+        //         const sphere = new Mesh( geometry, material );
+        //         scene.add( sphere );
+        //     }
+        // }
+        // 3D model
+        {
+            const source =
+                "./firefighter/scene.gltf";
+            loader.load(source, (gltf) => {
+                model3D = gltf;
+                // gltf.scene.rotation.x = Math.PI / 2;
+                // gltf.scene.scale.set(MODEL_SCALE, MODEL_SCALE, MODEL_SCALE);
+                // scene.add(gltf.scene);
+            });
+        }
     };
 
     webglOverlayView.onContextRestored = ({ gl }) => {
@@ -175,6 +218,18 @@ function initWebglOverlayView(map) {
     };
 
     webglOverlayView.onDraw = ({ gl, transformer }) => {
+        // clear scene and add lights
+        if (scene) {
+            while(scene.children.length > 0){
+                scene.remove(scene.children[0]);
+            }
+            const ambientLight = new AmbientLight(0xffffff, 0.75); // Soft white light.
+            scene.add(ambientLight);
+            const directionalLight = new DirectionalLight(0xffffff, 0.25);
+            directionalLight.position.set(0.5, -1, 0.5);
+            scene.add(directionalLight);
+        }
+
         const keys = Object.keys(unitPositions);
         for (let i = 0; i < keys.length; i++) {
             const id = keys[i];
@@ -191,7 +246,48 @@ function initWebglOverlayView(map) {
 
             camera.projectionMatrix = new Matrix4().fromArray(matrix);
             webglOverlayView.requestRedraw();
-            renderer.render(scene, camera);
+
+            if (scene) {
+                // add elements for each firefighter
+                {
+                    // status
+                    {
+                        // sphere
+                        {
+                            const geometry = new SphereGeometry( 0.4, 32, 16 );
+                            const material = new MeshBasicMaterial( { color: getColorFromText(`unit-${id}`) || 0xffff00 } );
+                            const sphere = new Mesh( geometry, material );
+                            sphere.position.x = -1;
+                            sphere.position.z = 4;
+                            scene.add( sphere );
+                        }
+                        // text
+                        {
+                            const name = `Unit ${id}`;
+                            const canvas = document.createElement('canvas');
+                            const ctx = canvas.getContext("2d");
+                            ctx.font="100px Georgia";
+                            ctx.fillStyle = "#ffffff";
+                            ctx.fillText(name,10,110);
+                            const texture = new Texture(canvas);
+                            texture.needsUpdate = true; //just to make sure it's all up to date.
+                            const label = new Mesh(new PlaneGeometry, new MeshBasicMaterial({map:texture}));
+                            label.rotation.x = Math.PI * 0.5;
+                            label.position.z = 4;
+                            // label.lookAt(camera.position);
+                            scene.add(label);
+                        }
+                    }
+                    if (model3D !== undefined) {
+                        model3D.scene.rotation.x = Math.PI / 2;
+                        model3D.scene.scale.set(MODEL_SCALE, MODEL_SCALE, MODEL_SCALE);
+                        scene.add(model3D.scene);
+                    }
+                }
+                renderer.render(scene, camera);
+            }
+
+            // renderer.render(scene, camera);
             // Sometimes it is necessary to reset the GL state.
             renderer.resetState();
         }
