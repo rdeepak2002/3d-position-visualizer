@@ -1,8 +1,0 @@
-Model Information:
-* title:	low poly firefighter
-* source:	https://sketchfab.com/3d-models/low-poly-firefighter-20d5318e3e954732b3cc31d73fed81b8
-* author:	koken0 (https://sketchfab.com/koken0)
-
-Model License:
-* license type:	SKETCHFAB Standard (https://sketchfab.com/licenses)
-* requirements:	Under basic restrictions, use worldwide, on all types of media, commercially or not, and in all types of derivative works

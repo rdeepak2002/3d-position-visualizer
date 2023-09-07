@@ -1,0 +1,36 @@
+on:
+  push:
+    branches:
+      - '**'
+
+name: Deploy
+
+jobs:
+  deploy_web:
+    name: Deploy
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+      - name: Set Node.js 16.x
+        uses: actions/setup-node@v3
+        with:
+          node-version: 16.x
+      - name: Run install
+        uses: borales/actions-yarn@v4
+        with:
+          cmd: install # will run `yarn install` command
+      - name: Build production bundle
+        uses: borales/actions-yarn@v4
+        with:
+          cmd: build:prod # will run `yarn build:prod` command
+#      - name: Test the app
+#        uses: borales/actions-yarn@v4
+#        with:
+#          cmd: test # will run `yarn test` command
+      - name: Deploy to netlify
+        uses: netlify/actions/cli@master
+        env:
+          NETLIFY_AUTH_TOKEN: ${{ secrets.NETLIFY_AUTH_TOKEN }}
+          NETLIFY_SITE_ID: ${{ secrets.NETLIFY_SITE_ID }}
+        with:
+          args: deploy --dir=build --prod
