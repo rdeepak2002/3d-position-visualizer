@@ -69,8 +69,46 @@ function createCenterControl(textContent, map, cb) {
     return controlButton;
 }
 
+function updateBiometricsPanelContent() {
+    const biometricsPanelContent = document.getElementById("biometrics-panel-content");
+    biometricsPanelContent.innerHTML = "";
+    for (let i = 1; i < 5; i++) {
+        biometricsPanelContent.innerHTML += getBiometricsPanelContent(i);
+    }
+}
+
+function getBiometricsPanelContent(id) {
+    if (unitBiometrics[id]) {
+        const biometrics = unitBiometrics[id];
+        console.log(`Displaying biometrics ${biometrics}`);
+        return `
+            <div style="height: auto; border-bottom: rgba(0, 0, 0, 0.2) solid 1px;">
+                <h4>Unit ${id}</h4>
+                <p>Name: ${biometrics.unitName}</p>
+                <p>HR: ${biometrics.heartRate}</p>
+                <p>Blood O2: ${biometrics.bloodO2}%</p>
+                <p>Body Temp: ${biometrics.bodyTemp} C</p>
+            </div>
+        `;
+    } else {
+        console.log(`Could not find biometrics for ${id} in ${JSON.stringify(unitBiometrics)}`)
+        return `<div style="height: auto; border-bottom: rgba(0, 0, 0, 0.2) solid 1px;">
+                    <p>No data available for unit ${id}</p>
+                </div>`;
+    }
+}
+
 function addButtonsToMap(map) {
     const centerControlDiv = document.createElement("div");
+    const unitBiometricsBtn = createCenterControl("Biometrics", map, (_map) => {
+        const biometricsPanel = document.getElementById("biometrics-panel");
+        if (biometricsPanel.style.display === "none") {
+            biometricsPanel.style.display = "block";
+        } else {
+            biometricsPanel.style.display = "none";
+        }
+        updateBiometricsPanelContent();
+    });
     const startBtn = createCenterControl("Start", map, (_map) => {
         let inputText = window.prompt("Please input latitude, longitude, altitude, and unit ID (ex: '55.55, 66.66, 77.77, unit-1')", "");
         let data = inputText?.split(",");
@@ -90,6 +128,7 @@ function addButtonsToMap(map) {
         const id = inputText?.trim() || "no_id";
         socket.emit("stop", id);
     });
+    centerControlDiv.appendChild(unitBiometricsBtn);
     centerControlDiv.appendChild(startBtn);
     centerControlDiv.appendChild(stopBtn);
     map.controls[google.maps.ControlPosition.TOP_CENTER].push(centerControlDiv);
@@ -103,6 +142,12 @@ function initMap() {
 }
 
 let unitPositions = {};
+let unitBiometrics = {
+    1: undefined,
+    2: undefined,
+    3: undefined,
+    4: undefined
+};
 
 // let latLngAltitudeLiteral = {
 //     lat: mapOptions.center.lat,
@@ -112,6 +157,17 @@ let unitPositions = {};
 
 socket.on("connect", () => {
     console.log("Connected to socket server");
+});
+
+socket.on("biometrics", (id, unitName, heartRate, bloodO2, bodyTemp) => {
+    unitBiometrics[id] = {
+        unitName,
+        heartRate,
+        bloodO2,
+        bodyTemp
+    };
+    // console.log(unitBiometrics[id]);
+    updateBiometricsPanelContent();
 });
 
 socket.on("device-data", (data) => {
@@ -257,32 +313,35 @@ function initWebglOverlayView(map) {
                             const geometry = new SphereGeometry( 0.4, 32, 16 );
                             const material = new MeshBasicMaterial( { color: getColorFromText(`unit-${id}`) || 0xffff00 } );
                             const sphere = new Mesh( geometry, material );
-                            sphere.position.x = -1;
-                            sphere.position.z = 4;
+                            // sphere.position.x = -1;
+                            // sphere.position.z = 4;
                             scene.add( sphere );
                         }
                         // text
                         {
                             const name = `Unit ${id}`;
                             const canvas = document.createElement('canvas');
+                            canvas.width  = 300;
+                            canvas.height = 120;
                             const ctx = canvas.getContext("2d");
-                            ctx.font="100px Georgia";
-                            ctx.fillStyle = "#ffffff";
+                            ctx.font="100px Roboto";
+                            ctx.fillStyle = "rgba(255, 255, 255, 255)";
                             ctx.fillText(name,10,110);
                             const texture = new Texture(canvas);
                             texture.needsUpdate = true; //just to make sure it's all up to date.
                             const label = new Mesh(new PlaneGeometry, new MeshBasicMaterial({map:texture}));
                             label.rotation.x = Math.PI * 0.5;
-                            label.position.z = 4;
+                            label.position.z = 1;
+                            // label.position.z = 4;
                             // label.lookAt(camera.position);
                             scene.add(label);
                         }
                     }
-                    if (model3D !== undefined) {
-                        model3D.scene.rotation.x = Math.PI / 2;
-                        model3D.scene.scale.set(MODEL_SCALE, MODEL_SCALE, MODEL_SCALE);
-                        scene.add(model3D.scene);
-                    }
+                    // if (model3D !== undefined) {
+                    //     model3D.scene.rotation.x = Math.PI / 2;
+                    //     model3D.scene.scale.set(MODEL_SCALE, MODEL_SCALE, MODEL_SCALE);
+                    //     scene.add(model3D.scene);
+                    // }
                 }
                 renderer.render(scene, camera);
             }
@@ -295,5 +354,7 @@ function initWebglOverlayView(map) {
 
     webglOverlayView.setMap(map);
 }
+
+updateBiometricsPanelContent();
 
 window.initMap = initMap;
