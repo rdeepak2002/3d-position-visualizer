@@ -4,8 +4,9 @@ import React, {useEffect, useState} from "react";
 import {IUnit, UnitColor} from "./IUnit";
 import Biometrics from "./Biometrics";
 import {io, Socket} from "socket.io-client";
-import {SOCKET_URL} from "./api";
+import {API_KEY, SOCKET_URL} from "./api";
 import * as Cesium from "cesium";
+import axios from "axios";
 
 function getUnitColorFromId(idIn: any): UnitColor {
     const id = `${idIn}`.trim();
@@ -184,15 +185,31 @@ function App() {
                     }}></input>
                         <span className="slider round"></span>
                 </label>
-                <button onClick={() => {
+                <button onClick={async () => {
                     if (socket) {
-                        let inputText = window.prompt("Please input latitude, longitude, altitude, and unit ID (ex: '55.55, 66.66, 77.77, unit-1')", "");
+                        let inputText = window.prompt("Please input latitude, longitude, altitude, and unit ID (ex: '33.748997, -84.387985, auto, 1')", "");
                         let data = inputText?.split(",");
                         if (data && data.length >= 4) {
                             const lat = parseFloat(data[0]?.trim() || '0.00');
                             const lng = parseFloat(data[1]?.trim() || '0.00');
-                            const alt = parseFloat(data[2]?.trim() || '0.00');
+                            let alt;
+                            console.log(data[2]?.trim());
+                            if (data[2]?.trim() === "auto") {
+                                // automatically find lat long of altitude
+                                const corsAnywhereUrl = `https://rdeepak2002-cors-anywhere-ca868129ad08.herokuapp.com/`;
+                                const url = `${corsAnywhereUrl}https://maps.googleapis.com/maps/api/elevation/json?locations=${lat},${lng}&key=${API_KEY}`;
+                                console.log("Going to fetch from API", url);
+                                try {
+                                    const response = await axios.get(url);
+                                    alt = response.data.results[0].elevation;
+                                } catch (e) {
+                                    console.error("Unable to make request to google elevation api", e);
+                                }
+                            } else {
+                                alt = parseFloat(data[2]?.trim() || '0.00');
+                            }
                             const id = data[3]?.trim() || "no_id";
+                            console.log("Emitting", "start", lat, lng, alt, id);
                             socket.emit("start", lat, lng, alt, id);
                         } else {
                             console.error("Input is not valid");
