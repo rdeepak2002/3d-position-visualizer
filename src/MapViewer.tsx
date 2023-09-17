@@ -40,6 +40,7 @@ function MapViewer(props: IMapViewerProps) {
     const moveVelocityX = useRef(0);
     const moveVelocityY = useRef(0);
     const moveVelocityZ = useRef(0);
+    const velocityMultiplier = useRef(2.0);
 
     function setupKeyListeners() {
         window.addEventListener('keypress', (event) => {
@@ -279,9 +280,16 @@ function MapViewer(props: IMapViewerProps) {
         if (cesiumViewer) {
             cesiumViewer.clock.onTick.addEventListener(function (clock) {
                 setupKeyListeners();
-                cesiumViewer.camera.moveRight(moveVelocityX.current);
-                cesiumViewer.camera.moveForward(moveVelocityZ.current);
-                cesiumViewer.camera.moveUp(moveVelocityY.current);
+                cesiumViewer.camera.setView({
+                    orientation: {
+                        heading: cesiumViewer.camera.heading,
+                        pitch: cesiumViewer.camera.pitch,
+                        roll: 0
+                    }
+                });
+                cesiumViewer.camera.moveRight(moveVelocityX.current * velocityMultiplier.current);
+                cesiumViewer.camera.moveForward(moveVelocityZ.current * velocityMultiplier.current);
+                cesiumViewer.camera.moveUp(moveVelocityY.current * velocityMultiplier.current);
             });
         }
     }, [cesiumViewer]);

@@ -134,7 +134,7 @@ function App() {
 
     // setup dummy data
     useEffect(() => {
-        const debugMode = false;
+        const debugMode = true;
 
         if (debugMode) {
             setUnits([
