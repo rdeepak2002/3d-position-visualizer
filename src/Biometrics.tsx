@@ -3,7 +3,11 @@ import {IUnit, UnitColor} from "./IUnit";
 import Cesium from "cesium";
 
 interface IBiometricsProps {
-    units: Array<IUnit>
+    units: Array<IUnit>,
+    isWireframeMode: boolean,
+    mapTransparency: number,
+    setWireFrameMode: Function,
+    setMapTransparency: Function
 }
 
 function unitColorToRgba(unitColor: UnitColor): string {

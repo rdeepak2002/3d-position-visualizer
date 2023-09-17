@@ -5,7 +5,9 @@ import {IUnit, UnitColor} from "./IUnit";
 import {Cesium3DTileset} from "cesium";
 
 interface IMapViewerProps {
-    units: Array<IUnit>
+    units: Array<IUnit>,
+    isWireframeMode: boolean,
+    mapTransparency: number,
 }
 
 function getCesiumMaterialFromUnitColor(unitColor: UnitColor): Cesium.Color {
@@ -28,12 +30,26 @@ function getCesiumMaterialFromUnitColor(unitColor: UnitColor): Cesium.Color {
 function MapViewer(props: IMapViewerProps) {
     // TODO: use viewer.zoomTo(viewer.entities); to allow selection and viewing of a particular unit
 
+    const [tileset, setTileset] = useState<Cesium3DTileset | undefined>(undefined);
     const [viewerCenter, setViewerCenter] = useState(Cesium.Cartesian3.fromDegrees(
         139.6999859, // longitude
         35.6590945, // latitude
         150.0 // height (altitude)
     ));
     const [cesiumViewer, setCesiumViewer] = useState<Cesium.Viewer | undefined>(undefined);
+
+    useEffect(() => {
+        if (tileset) tileset.debugWireframe = props?.isWireframeMode || false;
+    }, [props?.isWireframeMode]);
+
+    useEffect(() => {
+        if (tileset) {
+            tileset.style = new Cesium.Cesium3DTileStyle({
+                color : `color('#FFFFFF', ${props?.mapTransparency})`,
+                show : true
+            });
+        }
+    }, [props?.mapTransparency]);
 
     useEffect(() => {
         if (cesiumViewer && viewerCenter) {
@@ -143,9 +159,25 @@ function MapViewer(props: IMapViewerProps) {
             const tileset: Cesium3DTileset = viewer.scene.primitives.add(new Cesium.Cesium3DTileset({
                 url: `https://tile.googleapis.com/v1/3dtiles/root.json?key=${API_KEY}`,
                 showCreditsOnScreen: true,
+                backFaceCulling: true,
+                enableDebugWireframe: true,
+                // debugWireframe: true
             }));
-
+            // how to make map translucent:
+            // tileset.style = new Cesium.Cesium3DTileStyle({
+            //     color : "color('#FFFFFF', 0.8)", //white, alpha = 0.2
+            //     show : true
+            // });
             viewer.scene.globe.show = false;
+            viewer.scene.globe.depthTestAgainstTerrain = false;
+
+            tileset.debugWireframe = props?.isWireframeMode || false;
+            tileset.style = new Cesium.Cesium3DTileStyle({
+                color : `color('#FFFFFF', ${props?.mapTransparency})`,
+                show : true
+            });
+
+            setTileset(tileset);
 
             // Lock the camera onto a point.
             // const transform = Cesium.Transforms.eastNorthUpToFixedFrame(viewerCenter);
