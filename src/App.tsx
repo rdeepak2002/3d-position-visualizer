@@ -9,15 +9,15 @@ import * as Cesium from "cesium";
 
 function getUnitColorFromId(idIn: any): UnitColor {
     const id = `${idIn}`.trim();
-    if (id == "1" || id == "unit-1") {
+    if (id == "1" || id == "unit-1" || id == "unit1") {
         return UnitColor.Red;
-    } else if (id == "2" || id == "unit-2") {
+    } else if (id == "2" || id == "unit-2" || id == "unit2") {
         return UnitColor.Blue;
-    } else if (id == "3" || id == "unit-3") {
+    } else if (id == "3" || id == "unit-3" || id == "unit3") {
         return UnitColor.Green;
-    } else if (id == "4" || id == "unit-4") {
+    } else if (id == "4" || id == "unit-4" || id == "unit4") {
         return UnitColor.Purple;
-    } else if (id == "5" || id == "unit-5") {
+    } else if (id == "5" || id == "unit-5" || id == "unit5") {
         return UnitColor.Orange;
     } else {
         return UnitColor.Default;
