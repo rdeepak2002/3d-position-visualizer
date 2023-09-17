@@ -40,6 +40,7 @@ function MapViewer(props: IMapViewerProps) {
     const moveVelocityX = useRef(0);
     const moveVelocityY = useRef(0);
     const moveVelocityZ = useRef(0);
+    const rotateVelocityX = useRef(0);
     const velocityMultiplier = useRef(2.0);
 
     function setupKeyListeners() {
@@ -65,6 +66,12 @@ function MapViewer(props: IMapViewerProps) {
                 if (name.toLowerCase() == 'f') {
                     moveVelocityY.current = -speed;
                 }
+                if (name.toLowerCase() == 'q') {
+                    rotateVelocityX.current = speed * 0.05;
+                }
+                if (name.toLowerCase() == 'e') {
+                    rotateVelocityX.current = -speed * 0.05;
+                }
             }
         }, false);
         window.addEventListener('keyup', (event) => {
@@ -88,6 +95,12 @@ function MapViewer(props: IMapViewerProps) {
                 }
                 if (name.toLowerCase() == 'f') {
                     moveVelocityY.current = 0;
+                }
+                if (name.toLowerCase() == 'q') {
+                    rotateVelocityX.current = 0;
+                }
+                if (name.toLowerCase() == 'e') {
+                    rotateVelocityX.current = 0;
                 }
             }
         }, false);
@@ -290,6 +303,7 @@ function MapViewer(props: IMapViewerProps) {
                 cesiumViewer.camera.moveRight(moveVelocityX.current * velocityMultiplier.current);
                 cesiumViewer.camera.moveForward(moveVelocityZ.current * velocityMultiplier.current);
                 cesiumViewer.camera.moveUp(moveVelocityY.current * velocityMultiplier.current);
+                cesiumViewer.camera.rotateRight(rotateVelocityX.current * velocityMultiplier.current);
             });
         }
     }, [cesiumViewer]);
