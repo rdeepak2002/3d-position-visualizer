@@ -2,6 +2,7 @@ import {useEffect, useState} from "react";
 import * as Cesium from "cesium";
 import {API_KEY} from "./api";
 import {IUnit, UnitColor} from "./IUnit";
+import {Cesium3DTileset} from "cesium";
 
 interface IMapViewerProps {
     units: Array<IUnit>
@@ -78,6 +79,12 @@ function MapViewer(props: IMapViewerProps) {
                         model: {
                             uri: 'models/firefighter/scene.gltf'
                         },
+                        point: {
+                            pixelSize: 10,
+                            color: getCesiumMaterialFromUnitColor(unit.color),
+                            outlineColor: Cesium.Color.WHITE,
+                            outlineWidth: 2,
+                        },
                     });
                 }
 
@@ -133,7 +140,7 @@ function MapViewer(props: IMapViewerProps) {
             });
             setCesiumViewer(viewer);
 
-            const tileset = viewer.scene.primitives.add(new Cesium.Cesium3DTileset({
+            const tileset: Cesium3DTileset = viewer.scene.primitives.add(new Cesium.Cesium3DTileset({
                 url: `https://tile.googleapis.com/v1/3dtiles/root.json?key=${API_KEY}`,
                 showCreditsOnScreen: true,
             }));

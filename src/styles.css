@@ -1,3 +1,74 @@
+/* -- Roboto-Family -- */
+@font-face {
+    font-family: 'Roboto';
+    src: url('./fonts/Roboto/Roboto-Thin.ttf') format('truetype');
+    font-weight: 100;
+    font-style: normal;
+}
+
+@font-face {
+    font-family: 'Roboto';
+    src: url('./fonts/Roboto/Roboto-ThinItalic.ttf') format('truetype');
+    font-weight: 100;
+    font-style: italic;
+}
+
+@font-face {
+    font-family: 'Roboto';
+    src: url('./fonts/Roboto/Roboto-Light.ttf') format('truetype');
+    font-weight: 300;
+    font-style: normal;
+}
+
+@font-face {
+    font-family: 'Roboto';
+    src: url('./fonts/Roboto/Roboto-Regular.ttf') format('truetype');
+    font-weight: 400;
+    font-style: normal;
+}
+
+@font-face {
+    font-family: 'Roboto';
+    src: url('./fonts/Roboto/Roboto-Italic.ttf') format('truetype');
+    font-weight: 400;
+    font-style: italic;
+}
+
+@font-face {
+    font-family: 'Roboto';
+    src: url('./fonts/Roboto/Roboto-Medium.ttf') format('truetype');
+    font-weight: 500;
+    font-style: normal;
+}
+
+@font-face {
+    font-family: 'Roboto';
+    src: url('./fonts/Roboto/Roboto-MediumItalic.ttf') format('truetype');
+    font-weight: 500;
+    font-style: italic;
+}
+
+@font-face {
+    font-family: 'Roboto';
+    src: url('./fonts/Roboto/Roboto-Bold.ttf') format('truetype');
+    font-weight: 700;
+    font-style: normal;
+}
+
+@font-face {
+    font-family: 'Roboto';
+    src: url('./fonts/Roboto/Roboto-Black.ttf') format('truetype');
+    font-weight: 900;
+    font-style: normal;
+}
+
+@font-face {
+    font-family: 'Roboto';
+    src: url('./fonts/Roboto/Roboto-BlackItalic.ttf') format('truetype');
+    font-weight: 900;
+    font-style: italic;
+}
+
 .cesium-widget-credits{
     display: none !important;
 }
@@ -12,4 +83,54 @@
 
 .cesium-viewer-geocoderContainer {
     display: none !important;
+}
+
+canvas {
+    border-radius: 10px;
+}
+
+html, body {
+    background-color: rgb(231, 231, 231);
+    height: 100vh;
+    margin: 0;
+    padding: 0;
+}
+
+#root {
+    height: 100%;
+}
+
+html, body, p, h1, h2, h3, h4 {
+    font-family: Roboto, serif;
+}
+
+#cesiumContainer {
+    display: flex;
+    flex-grow: 1;
+    padding: 10px;
+    max-height: 65%;
+}
+
+#biometrics-panel {
+    display: flex;
+    flex-grow: 1;
+    flex-wrap: wrap;
+    flex-direction: row;
+    max-width: calc(100% - 40px);
+    padding: 10px;
+    margin: 5px 10px 10px 10px;
+    border-radius: 10px;
+    background: rgba(255, 255, 255, 0.8);
+    box-shadow: rgba(74, 77, 82, 0.2) 0px 8px 24px;
+    gap: 10px;
+}
+
+.unit-biometric {
+    padding: 10px;
+    display: flex;
+    flex-direction: column;
+    margin: 0;
+    box-shadow: rgba(74, 77, 82, 0.2) 0px 8px 24px;
+    border-radius: 10px;
+    flex-grow: 1;
 }
