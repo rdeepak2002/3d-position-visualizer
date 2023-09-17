@@ -1,8 +1,7 @@
-import {useEffect, useState} from "react";
+import {useEffect, useRef, useState} from "react";
 import * as Cesium from "cesium";
 import {API_KEY} from "./api";
 import {IUnit, UnitColor} from "./IUnit";
-import {Cesium3DTileset} from "cesium";
 
 interface IMapViewerProps {
     units: Array<IUnit>,
@@ -31,13 +30,67 @@ function getCesiumMaterialFromUnitColor(unitColor: UnitColor): Cesium.Color {
 function MapViewer(props: IMapViewerProps) {
     // TODO: use viewer.zoomTo(viewer.entities); to allow selection and viewing of a particular unit
 
-    const [tileset, setTileset] = useState<Cesium3DTileset | undefined>(undefined);
+    const [tileset, setTileset] = useState<Cesium.Cesium3DTileset | undefined>(undefined);
     const [viewerCenter, setViewerCenter] = useState(Cesium.Cartesian3.fromDegrees(
         139.6999859, // longitude
         35.6590945, // latitude
         150.0 // height (altitude)
     ));
     const [cesiumViewer, setCesiumViewer] = useState<Cesium.Viewer | undefined>(undefined);
+    const moveVelocityX = useRef(0);
+    const moveVelocityY = useRef(0);
+    const moveVelocityZ = useRef(0);
+
+    function setupKeyListeners() {
+        window.addEventListener('keypress', (event) => {
+            const name = event.key;
+            const speed = 0.05;
+            if (cesiumViewer) {
+                if (name.toLowerCase() == 'd') {
+                    moveVelocityX.current = speed;
+                }
+                if (name.toLowerCase() == 'a') {
+                    moveVelocityX.current = -speed;
+                }
+                if (name.toLowerCase() == 'w') {
+                    moveVelocityZ.current = speed * 2;
+                }
+                if (name.toLowerCase() == 's') {
+                    moveVelocityZ.current = -speed * 2;
+                }
+                if (name.toLowerCase() == 'r') {
+                    moveVelocityY.current = speed;
+                }
+                if (name.toLowerCase() == 'f') {
+                    moveVelocityY.current = -speed;
+                }
+            }
+        }, false);
+        window.addEventListener('keyup', (event) => {
+            const name = event.key;
+            const speed = 0.1;
+            if (cesiumViewer) {
+                if (name.toLowerCase() == 'd') {
+                    moveVelocityX.current = 0;
+                }
+                if (name.toLowerCase() == 'a') {
+                    moveVelocityX.current = 0;
+                }
+                if (name.toLowerCase() == 'w') {
+                    moveVelocityZ.current = 0;
+                }
+                if (name.toLowerCase() == 's') {
+                    moveVelocityZ.current = 0;
+                }
+                if (name.toLowerCase() == 'r') {
+                    moveVelocityY.current = 0;
+                }
+                if (name.toLowerCase() == 'f') {
+                    moveVelocityY.current = 0;
+                }
+            }
+        }, false);
+    }
 
     // center around new unit since it is selected
     useEffect(() => {
@@ -184,8 +237,10 @@ function MapViewer(props: IMapViewerProps) {
                 creditContainer: undefined
             });
             setCesiumViewer(viewer);
+            // const canvas = viewer.canvas;
+            // canvas.setAttribute('tabindex', '0'); // needed to put focus on the canvas
 
-            const tileset: Cesium3DTileset = viewer.scene.primitives.add(new Cesium.Cesium3DTileset({
+            const tileset: Cesium.Cesium3DTileset = viewer.scene.primitives.add(new Cesium.Cesium3DTileset({
                 url: `https://tile.googleapis.com/v1/3dtiles/root.json?key=${API_KEY}`,
                 showCreditsOnScreen: true,
                 backFaceCulling: true,
@@ -219,6 +274,17 @@ function MapViewer(props: IMapViewerProps) {
             // });
         }
     }, [props.units]);
+
+    useEffect(() => {
+        if (cesiumViewer) {
+            cesiumViewer.clock.onTick.addEventListener(function (clock) {
+                setupKeyListeners();
+                cesiumViewer.camera.moveRight(moveVelocityX.current);
+                cesiumViewer.camera.moveForward(moveVelocityZ.current);
+                cesiumViewer.camera.moveUp(moveVelocityY.current);
+            });
+        }
+    }, [cesiumViewer]);
 
     return (
         <div id="cesiumContainer"></div>
