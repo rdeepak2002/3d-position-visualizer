@@ -1,3 +1,11 @@
+export enum UnitColor {
+    Red = 1,
+    Green,
+    Blue,
+    Purple,
+    Orange
+}
+
 export interface IBiometrics {
     unitName: string,
     heartRate: number,
@@ -13,6 +21,10 @@ export interface ILatLongAlt {
 
 export interface IUnit {
     id: string,
+    color: UnitColor,
     biometrics?: IBiometrics,
-    latLongAlt?: ILatLongAlt
+    latLongAlt?: ILatLongAlt,
+    unitModelHandle?: any,
+    unitBoxHandle?: any,
+    unitLabelHandle?: any
 }

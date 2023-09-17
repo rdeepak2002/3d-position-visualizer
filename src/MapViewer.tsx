@@ -1,13 +1,32 @@
 import {useEffect, useState} from "react";
 import * as Cesium from "cesium";
 import {API_KEY} from "./api";
-import {IUnit} from "./IUnit";
+import {IUnit, UnitColor} from "./IUnit";
 
 interface IMapViewerProps {
     units: Array<IUnit>
 }
 
+function getCesiumMaterialFromUnitColor(unitColor: UnitColor): Cesium.Color {
+    switch (unitColor) {
+        case UnitColor.Red:
+            return Cesium.Color.RED.withAlpha(0.5);
+        case UnitColor.Blue:
+            return Cesium.Color.BLUE.withAlpha(0.5);
+        case UnitColor.Green:
+            return Cesium.Color.GREEN.withAlpha(0.5);
+        case UnitColor.Purple:
+            return Cesium.Color.PURPLE.withAlpha(0.5);
+        case UnitColor.Orange:
+            return Cesium.Color.ORANGE.withAlpha(0.5);
+        default:
+            return Cesium.Color.GREY.withAlpha(0.5);
+    }
+}
+
 function MapViewer(props: IMapViewerProps) {
+    // TODO: use viewer.zoomTo(viewer.entities); to allow selection and viewing of a particular unit
+
     const [viewerCenter, setViewerCenter] = useState(Cesium.Cartesian3.fromDegrees(
         139.6999859, // longitude
         35.6590945, // latitude
@@ -21,14 +40,20 @@ function MapViewer(props: IMapViewerProps) {
 
             cesiumViewer.scene.camera.lookAtTransform(
                 transform,
-                new Cesium.HeadingPitchRange(0, -Math.PI / 8, 100)
+                new Cesium.HeadingPitchRange(0, -Math.PI / 8, 30)
             );
+
+            cesiumViewer.scene.camera.rotateRight(1.7);
         }
     }, [viewerCenter, cesiumViewer]);
 
     // run cesium viewer
     useEffect(() => {
         if (cesiumViewer) {
+            // remove all entities
+            cesiumViewer.entities.removeAll();
+
+            // add entity per unit
             const units = props?.units || [];
             for (let unitIdx = 0; unitIdx < units.length; unitIdx++) {
                 const unit = units[unitIdx];
@@ -45,22 +70,48 @@ function MapViewer(props: IMapViewerProps) {
 
                 setViewerCenter(cesiumLongLatHeight);
                 console.debug("Fetching model");
-                const unitModelHandle = cesiumViewer.entities.add({
-                    position : cesiumLongLatHeight,
-                    model : {
-                        uri : 'models/firefighter/scene.gltf'
-                    }
-                });
 
-                const unitBoxHandle = cesiumViewer.entities.add({
-                    position : Cesium.Cartesian3.fromDegrees(longitude, latitude, height + 0.8),
-                    box: {
-                        dimensions: new Cesium.Cartesian3(1.5, 1.5, 2),
-                        material: Cesium.Color.RED.withAlpha(0.5),
-                        outline: true,
-                        outlineColor: Cesium.Color.BLACK,
-                    }
-                });
+                // firefighter model
+                if (!unit.unitModelHandle) {
+                    unit.unitModelHandle = cesiumViewer.entities.add({
+                        position: cesiumLongLatHeight,
+                        model: {
+                            uri: 'models/firefighter/scene.gltf'
+                        },
+                    });
+                }
+
+                // translucent box
+                if (!unit.unitBoxHandle) {
+                    unit.unitBoxHandle = cesiumViewer.entities.add({
+                        position: Cesium.Cartesian3.fromDegrees(longitude, latitude, height + 0.8),
+                        box: {
+                            dimensions: new Cesium.Cartesian3(1.5, 1.5, 2),
+                            material: getCesiumMaterialFromUnitColor(unit.color),
+                            outline: true,
+                            outlineColor: Cesium.Color.BLACK,
+                        },
+                    });
+                    // how to change color: Cesium.Color.RED.withAlpha(0.5),
+                    // unit.unitBoxHandle.box.material = Cesium.Color.GREEN.withAlpha(0.5);
+                }
+
+                // firefighter label
+                if (!unit.unitLabelHandle) {
+                    unit.unitLabelHandle = cesiumViewer.entities.add({
+                        position: Cesium.Cartesian3.fromDegrees(longitude, latitude, height + 2.0),
+                        label: {
+                            text: `Unit ${unit.id}`,
+                            font: "16pt monospace",
+                            style: Cesium.LabelStyle.FILL_AND_OUTLINE,
+                            outlineWidth: 4,
+                            verticalOrigin: Cesium.VerticalOrigin.BOTTOM,
+                            pixelOffset: new Cesium.Cartesian2(0, 0),
+                        },
+                    });
+                }
+
+                console.debug("Units", units);
                 console.debug("Done fetching model");
             }
         } else {
@@ -96,6 +147,8 @@ function MapViewer(props: IMapViewerProps) {
             //     transform,
             //     new Cesium.HeadingPitchRange(0, -Math.PI / 8, 200)
             // );
+            //
+            // viewer.scene.camera.rotateRight(3.14);
 
             // Orbit around this point.
             // viewer.clock.onTick.addEventListener(function (clock) {
