@@ -8,7 +8,7 @@ function App() {
     const [units, setUnits] = useState<Array<IUnit>>([]);
     const [isWireframeMode, setWireFrameMode] = useState(false);
     const [mapTransparency, setMapTransparency] = useState(1.0);
-    const [selectedUnitIdx, setSelectedUnitIdx] = useState(0);
+    const [selectedUnitIdx, setSelectedUnitIdx] = useState(-1);
 
     useEffect(() => {
         setUnits([
