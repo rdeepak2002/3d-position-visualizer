@@ -3,7 +3,8 @@ export enum UnitColor {
     Green,
     Blue,
     Purple,
-    Orange
+    Orange,
+    Default
 }
 
 export interface IBiometrics {

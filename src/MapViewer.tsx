@@ -94,7 +94,7 @@ function MapViewer(props: IMapViewerProps) {
     useEffect(() => {
         if (cesiumViewer) {
             // remove all entities
-            cesiumViewer.entities.removeAll();
+            // cesiumViewer.entities.removeAll();
 
             // add entity per unit
             const units = props?.units || [];
@@ -111,7 +111,10 @@ function MapViewer(props: IMapViewerProps) {
                     height
                 );
 
-                setViewerCenter(cesiumLongLatHeight);
+                if (props?.selectedUnitIdx === -1 || props?.selectedUnitIdx === undefined) {
+                    setViewerCenter(cesiumLongLatHeight);
+                }
+
                 console.debug("Fetching model");
 
                 // firefighter model
