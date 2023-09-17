@@ -1,13 +1,14 @@
-import React, {useEffect, useState} from "react";
+import React from "react";
 import {IUnit, UnitColor} from "./IUnit";
-import Cesium from "cesium";
 
 interface IBiometricsProps {
     units: Array<IUnit>,
     isWireframeMode: boolean,
     mapTransparency: number,
+    selectedUnitIdx: number,
     setWireFrameMode: Function,
-    setMapTransparency: Function
+    setMapTransparency: Function,
+    setSelectedUnitIdx: Function
 }
 
 function unitColorToRgba(unitColor: UnitColor): string {
@@ -33,7 +34,10 @@ function Biometrics(props: IBiometricsProps) {
             {
                 props?.units.map((unit, idx) => {
                     return (
-                        <div key={unit?.id || idx} className={"unit-biometric"}>
+                        <div key={unit?.id || idx} className={"unit-biometric"} onClick={() => {
+                            console.debug("Setting selected unit to ", idx);
+                            props?.setSelectedUnitIdx(idx);
+                        }}>
                             <div style={{display: "flex", flexDirection: "row", alignContent: "center",
                                 alignItems: "center", justifyContent: "start"}}>
                                 <div style={{width: "10px", height: "10px", borderRadius: "100%", marginRight: "10px",

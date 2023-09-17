@@ -8,6 +8,7 @@ interface IMapViewerProps {
     units: Array<IUnit>,
     isWireframeMode: boolean,
     mapTransparency: number,
+    selectedUnitIdx: number,
 }
 
 function getCesiumMaterialFromUnitColor(unitColor: UnitColor): Cesium.Color {
@@ -38,10 +39,34 @@ function MapViewer(props: IMapViewerProps) {
     ));
     const [cesiumViewer, setCesiumViewer] = useState<Cesium.Viewer | undefined>(undefined);
 
+    // center around new unit since it is selected
+    useEffect(() => {
+        const unitIdx = props.selectedUnitIdx;
+        console.debug("Viewer is selecting", unitIdx);
+        if (props?.units.length > 0 && unitIdx < props?.units.length) {
+            const unit = props?.units[unitIdx];
+            if (unit) {
+                const longitude = unit?.latLongAlt?.longitude || 0.0;
+                const latitude = unit?.latLongAlt?.latitude || 0.0;
+                const height = unit?.latLongAlt?.height || 0.0;
+
+                const cesiumLongLatHeight = Cesium.Cartesian3.fromDegrees(
+                    longitude,
+                    latitude,
+                    height
+                );
+
+                setViewerCenter(cesiumLongLatHeight);
+            }
+        }
+    }, [props?.selectedUnitIdx, cesiumViewer]);
+
+    // make map wireframe mode
     useEffect(() => {
         if (tileset) tileset.debugWireframe = props?.isWireframeMode || false;
     }, [props?.isWireframeMode]);
 
+    // change transparency of newly loaded tiles
     useEffect(() => {
         if (tileset) {
             tileset.style = new Cesium.Cesium3DTileStyle({
@@ -51,6 +76,7 @@ function MapViewer(props: IMapViewerProps) {
         }
     }, [props?.mapTransparency]);
 
+    // when viewing center variable changes, make cesium viewer look at that
     useEffect(() => {
         if (cesiumViewer && viewerCenter) {
             const transform = Cesium.Transforms.eastNorthUpToFixedFrame(viewerCenter);
@@ -64,7 +90,7 @@ function MapViewer(props: IMapViewerProps) {
         }
     }, [viewerCenter, cesiumViewer]);
 
-    // run cesium viewer
+    // initialize cesium viewer
     useEffect(() => {
         if (cesiumViewer) {
             // remove all entities
@@ -163,13 +189,8 @@ function MapViewer(props: IMapViewerProps) {
                 enableDebugWireframe: true,
                 // debugWireframe: true
             }));
-            // how to make map translucent:
-            // tileset.style = new Cesium.Cesium3DTileStyle({
-            //     color : "color('#FFFFFF', 0.8)", //white, alpha = 0.2
-            //     show : true
-            // });
-            viewer.scene.globe.show = false;
-            viewer.scene.globe.depthTestAgainstTerrain = false;
+            // viewer.scene.globe.show = false;
+            // viewer.scene.globe.depthTestAgainstTerrain = true;
 
             tileset.debugWireframe = props?.isWireframeMode || false;
             tileset.style = new Cesium.Cesium3DTileStyle({
