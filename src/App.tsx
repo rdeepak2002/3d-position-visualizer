@@ -201,7 +201,7 @@ function App() {
                                 console.log("Going to fetch from API", url);
                                 try {
                                     const response = await axios.get(url);
-                                    alt = response.data.results[0].elevation;
+                                    alt = parseFloat(`${response?.data?.results[0]?.elevation || 10.0}`);
                                 } catch (e) {
                                     console.error("Unable to make request to google elevation api", e);
                                 }
