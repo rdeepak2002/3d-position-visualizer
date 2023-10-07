@@ -187,7 +187,7 @@ function App() {
                 </label>
                 <button onClick={async () => {
                     if (socket) {
-                        let inputText = window.prompt("Please input latitude, longitude, altitude, and unit ID (ex: '33.748997, -84.387985, auto, 1')", "");
+                        let inputText = window.prompt("Please input latitude, longitude, altitude, unit ID, and scenario (ex: '33.748997, -84.387985, auto, 1, a')", "");
                         let data = inputText?.split(",");
                         if (data && data.length >= 4) {
                             const lat = parseFloat(data[0]?.trim() || '0.00');
