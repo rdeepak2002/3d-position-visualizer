@@ -7,6 +7,11 @@ import {io, Socket} from "socket.io-client";
 import {API_KEY, SOCKET_URL} from "./api";
 import * as Cesium from "cesium";
 import axios from "axios";
+import 'bootstrap/dist/css/bootstrap.min.css';
+import Button from 'react-bootstrap/Button';
+import Modal from 'react-bootstrap/Modal';
+import Form from 'react-bootstrap/Form';
+import InputGroup from 'react-bootstrap/InputGroup';
 
 function getUnitColorFromId(idIn: any): UnitColor {
     const id = `${idIn}`.trim();
@@ -31,6 +36,42 @@ function App() {
     const [mapTransparency, setMapTransparency] = useState(1.0);
     const [selectedUnitIdx, setSelectedUnitIdx] = useState(-1);
     const [socket, setSocket] = useState<undefined | Socket>();
+
+    const [show, setShow] = useState(false);
+    const [startData, setStartData] = useState([
+        {
+            lat: "33.748997",
+            lng: "-84.387985",
+            alt: "auto",
+            unitId: "1",
+            scenario: "a",
+            key: 1
+        },
+        {
+            lat: "33.748997",
+            lng: "-84.387985",
+            alt: "auto",
+            unitId: "2",
+            scenario: "a",
+            key: 2
+        },
+        {
+            lat: "33.748997",
+            lng: "-84.387985",
+            alt: "auto",
+            unitId: "3",
+            scenario: "a",
+            key: 3
+        },
+        {
+            lat: "33.748997",
+            lng: "-84.387985",
+            alt: "auto",
+            unitId: "4",
+            scenario: "a",
+            key: 4
+        }
+    ]);
 
     // setup socket listeners
     useEffect(() => {
@@ -175,69 +216,145 @@ function App() {
 
     return (
         <div style={{display: "flex", height: "100%", flexDirection: "column"}}>
+            <Modal size="lg" show={show} onHide={() => {
+                setShow(false);
+            }}>
+                <Modal.Header closeButton>
+                    <Modal.Title>Start</Modal.Title>
+                </Modal.Header>
+                <Modal.Body>
+                    <p>Please input latitude, longitude, altitude, unit ID, and scenario</p>
+                    {
+                        startData.map((data, idx) => {
+                            return (
+                                <div key={data.key}>
+                                    <InputGroup className="mb-3">
+                                        {/*<InputGroup.Text>Unit</InputGroup.Text>*/}
+                                        <Form.Control aria-label="Latitude" defaultValue={data.lat} onChange={(e) => {
+                                            data.lat = e.target.value;
+                                            startData[idx] = data;
+                                            setStartData([...startData]);
+                                        }} />
+                                        <Form.Control aria-label="Longitude" defaultValue={data.lng} onChange={(e) => {
+                                            data.lng = e.target.value;
+                                            startData[idx] = data;
+                                            setStartData([...startData]);
+                                        }}  />
+                                        <Form.Control aria-label="Altitude" defaultValue={data.alt} onChange={(e) => {
+                                            data.alt = e.target.value;
+                                            startData[idx] = data;
+                                            setStartData([...startData]);
+                                        }}  />
+                                        <Form.Control aria-label="Unit ID" defaultValue={data.unitId} onChange={(e) => {
+                                            data.unitId = e.target.value;
+                                            startData[idx] = data;
+                                            setStartData([...startData]);
+                                        }}  />
+                                        <Form.Control aria-label="Scenario" defaultValue={data.scenario} onChange={(e) => {
+                                            data.scenario = e.target.value;
+                                            startData[idx] = data;
+                                            setStartData([...startData]);
+                                        }}  />
+                                        <Button variant="outline-danger" onClick={() => {
+                                            startData.splice(idx, 1);
+                                            setStartData([...startData]);
+                                        }}>Remove</Button>
+                                    </InputGroup>
+                                </div>
+                            );
+                        })
+                    }
+                    <Button variant="primary" onClick={() => {
+                        startData.push({
+                            lat: "33.748997",
+                            lng: "-84.387985",
+                            alt: "auto",
+                            unitId: `${startData.length + 1}`,
+                            scenario: "a",
+                            key: new Date().getTime()
+                        });
+                        setStartData([...startData]);
+                    }}>
+                        Add
+                    </Button>
+                </Modal.Body>
+                <Modal.Footer>
+                    <Button variant="secondary" onClick={() => {
+                        setShow(false);
+                    }}>
+                        Close
+                    </Button>
+                    <Button variant="primary" onClick={async () => {
+                        if (socket) {
+                            for (const data of startData) {
+                                let alt: any = data.alt.trim();
+                                if (data.alt.trim() === "auto") {
+                                    // automatically find lat long of altitude
+                                    const corsAnywhereUrl = `https://rdeepak2002-cors-anywhere-ca868129ad08.herokuapp.com/`;
+                                    const url = `${corsAnywhereUrl}https://maps.googleapis.com/maps/api/elevation/json?locations=${data.lat},${data.lng}&key=${API_KEY}`;
+                                    console.log("Going to fetch from API", url);
+                                    try {
+                                        const response = await axios.get(url);
+                                        alt = parseFloat(`${response?.data?.results[0]?.elevation || 10.0}`);
+                                    } catch (e) {
+                                        console.error("Unable to make request to google elevation api", e);
+                                    }
+                                } else {
+                                    alt = parseFloat(data.alt.trim() || '0.00');
+                                }
+                                console.log("Sending start data", parseFloat(data.lat), parseFloat(data.lng), parseFloat(alt), data.unitId, data.scenario);
+                                socket.emit("start", parseFloat(data.lat), parseFloat(data.lng), parseFloat(alt), data.unitId, data.scenario);
+                            }
+                            setShow(false);
+                        } else {
+                            setShow(false);
+                        }
+                    }}>
+                        Send Data
+                    </Button>
+                </Modal.Footer>
+            </Modal>
             <MapViewer units={units} isWireframeMode={isWireframeMode} mapTransparency={mapTransparency}
                        selectedUnitIdx={selectedUnitIdx}/>
-            <div style={{marginLeft: "10px", display: "flex", alignItems: "center"}}>
-                <p style={{marginRight: "10px"}}>Wireframe</p>
+            <div style={{marginLeft: "10px", display: "flex", alignItems: "center", columnGap: "10px"}}>
+                <p style={{marginRight: "10px", marginTop: "auto", marginBottom: "auto", fontSize: "1.5rem"}}>Wireframe</p>
                 <label className="switch">
                     <input checked={isWireframeMode} type="checkbox" onChange={(e) => {
                         setWireFrameMode(e?.target?.checked || false);
                     }}></input>
                         <span className="slider round"></span>
                 </label>
-                <button onClick={async () => {
+                <Button variant="primary" onClick={() => {
+                    setShow(true);
+                }}>
+                    Start
+                </Button>
+                <Button variant="primary" onClick={() => {
                     if (socket) {
-                        let inputText = window.prompt("Please input latitude, longitude, altitude, unit ID, and scenario (ex: '33.748997, -84.387985, auto, 1, a')", "");
-                        let data = inputText?.split(",");
-                        if (data && data.length >= 4) {
-                            const lat = parseFloat(data[0]?.trim() || '0.00');
-                            const lng = parseFloat(data[1]?.trim() || '0.00');
-                            let alt;
-                            console.log(data[2]?.trim());
-                            if (data[2]?.trim() === "auto") {
-                                // automatically find lat long of altitude
-                                const corsAnywhereUrl = `https://rdeepak2002-cors-anywhere-ca868129ad08.herokuapp.com/`;
-                                const url = `${corsAnywhereUrl}https://maps.googleapis.com/maps/api/elevation/json?locations=${lat},${lng}&key=${API_KEY}`;
-                                console.log("Going to fetch from API", url);
-                                try {
-                                    const response = await axios.get(url);
-                                    alt = parseFloat(`${response?.data?.results[0]?.elevation || 10.0}`);
-                                } catch (e) {
-                                    console.error("Unable to make request to google elevation api", e);
-                                }
-                            } else {
-                                alt = parseFloat(data[2]?.trim() || '0.00');
-                            }
-                            const id = data[3]?.trim() || "no_id";
-                            const scenario = data[4]?.trim() || "no_scenario";
-                            console.log("Sending start message", lat, lng, alt, id, scenario);
-                            socket.emit("start", lat, lng, alt, id, scenario);
-                        } else {
-                            console.error("Input is not valid");
-                            alert("Input is not valid");
-                        }
-                    }
-                }}>Start</button>
-                <button onClick={() => {
-                    if (socket) {
-                        let inputText = window.prompt("Please input unit IDs (ex: '1, 2, 3, 4')", "1, 2, 3, 4");
+                        const unitIds = startData.map((sd) => sd.unitId).join(",");
+                        let inputText = window.prompt("Please input unit IDs (ex: '1, 2, 3, 4')", unitIds);
                         const ids = inputText?.trim().split(",") || "no_id";
                         for (const id of ids) {
                             console.log("Sending stop message", id.trim());
                             socket.emit("stop", id.trim());
                         }
                     }
-                }}>Stop</button>
-                <button onClick={() => {
+                }}>
+                    Stop
+                </Button>
+                <Button variant="primary" onClick={() => {
                     if (socket) {
-                        let inputText = window.prompt("Please input unit IDs (ex: '1, 2, 3, 4')", "1, 2, 3, 4");
+                        const unitIds = startData.map((sd) => sd.unitId).join(",");
+                        let inputText = window.prompt("Please input unit IDs (ex: '1, 2, 3, 4')", unitIds);
                         const ids = inputText?.trim().split(",") || "no_id";
                         for (const id of ids) {
                             console.log("Sending upload message", id.trim());
                             socket.emit("upload", id.trim());
                         }
                     }
-                }}>Upload Ground Station Data</button>
+                }}>
+                    Upload
+                </Button>
             </div>
             <Biometrics units={units} isWireframeMode={isWireframeMode} selectedUnitIdx={selectedUnitIdx}
                         mapTransparency={mapTransparency} setWireFrameMode={setWireFrameMode}
