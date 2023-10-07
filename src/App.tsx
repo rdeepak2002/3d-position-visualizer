@@ -224,6 +224,13 @@ function App() {
                         socket.emit("stop", id);
                     }
                 }}>Stop</button>
+                <button onClick={() => {
+                    if (socket) {
+                        let inputText = window.prompt("Please input unit ID (ex: '1')", "");
+                        const id = inputText?.trim() || "no_id";
+                        socket.emit("upload", id);
+                    }
+                }}>Upload Data from Ground Station</button>
             </div>
             <Biometrics units={units} isWireframeMode={isWireframeMode} selectedUnitIdx={selectedUnitIdx}
                         mapTransparency={mapTransparency} setWireFrameMode={setWireFrameMode}
