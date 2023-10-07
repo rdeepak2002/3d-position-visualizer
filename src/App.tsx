@@ -209,8 +209,9 @@ function App() {
                                 alt = parseFloat(data[2]?.trim() || '0.00');
                             }
                             const id = data[3]?.trim() || "no_id";
-                            console.log("Emitting", "start", lat, lng, alt, id);
-                            socket.emit("start", lat, lng, alt, id);
+                            const scenario = data[4]?.trim() || "no_scenario";
+                            console.log("Sending start message", lat, lng, alt, id, scenario);
+                            socket.emit("start", lat, lng, alt, id, scenario);
                         } else {
                             console.error("Input is not valid");
                             alert("Input is not valid");
@@ -236,7 +237,7 @@ function App() {
                             socket.emit("upload", id.trim());
                         }
                     }
-                }}>Upload Data from Ground Station</button>
+                }}>Upload Ground Station Data</button>
             </div>
             <Biometrics units={units} isWireframeMode={isWireframeMode} selectedUnitIdx={selectedUnitIdx}
                         mapTransparency={mapTransparency} setWireFrameMode={setWireFrameMode}
