@@ -219,16 +219,22 @@ function App() {
                 }}>Start</button>
                 <button onClick={() => {
                     if (socket) {
-                        let inputText = window.prompt("Please input unit ID (ex: '1')", "");
-                        const id = inputText?.trim() || "no_id";
-                        socket.emit("stop", id);
+                        let inputText = window.prompt("Please input unit IDs (ex: '1, 2, 3, 4')", "1, 2, 3, 4");
+                        const ids = inputText?.trim().split(",") || "no_id";
+                        for (const id of ids) {
+                            console.log("Sending stop message", id.trim());
+                            socket.emit("stop", id.trim());
+                        }
                     }
                 }}>Stop</button>
                 <button onClick={() => {
                     if (socket) {
-                        let inputText = window.prompt("Please input unit ID (ex: '1')", "");
-                        const id = inputText?.trim() || "no_id";
-                        socket.emit("upload", id);
+                        let inputText = window.prompt("Please input unit IDs (ex: '1, 2, 3, 4')", "1, 2, 3, 4");
+                        const ids = inputText?.trim().split(",") || "no_id";
+                        for (const id of ids) {
+                            console.log("Sending upload message", id.trim());
+                            socket.emit("upload", id.trim());
+                        }
                     }
                 }}>Upload Data from Ground Station</button>
             </div>
