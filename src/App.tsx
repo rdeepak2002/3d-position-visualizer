@@ -37,6 +37,8 @@ function App() {
     const [selectedUnitIdx, setSelectedUnitIdx] = useState(-1);
     const [socket, setSocket] = useState<undefined | Socket>();
 
+    const [shouldCenterAroundNewUnitUpdates, setShouldCenterAroundNewUnitUpdates] = useState(true);
+
     const [show, setShow] = useState(false);
     const [startData, setStartData] = useState([
         {
@@ -315,7 +317,7 @@ function App() {
                 </Modal.Footer>
             </Modal>
             <MapViewer units={units} isWireframeMode={isWireframeMode} mapTransparency={mapTransparency}
-                       selectedUnitIdx={selectedUnitIdx}/>
+                       selectedUnitIdx={selectedUnitIdx} shouldCenterAroundNewUnitUpdates={shouldCenterAroundNewUnitUpdates}/>
             <div style={{marginLeft: "10px", display: "flex", alignItems: "center", columnGap: "10px"}}>
                 <p style={{marginRight: "10px", marginTop: "auto", marginBottom: "auto", fontSize: "1.5rem"}}>Wireframe</p>
                 <label className="switch">
@@ -323,6 +325,13 @@ function App() {
                         setWireFrameMode(e?.target?.checked || false);
                     }}></input>
                         <span className="slider round"></span>
+                </label>
+                <p style={{marginRight: "10px", marginTop: "auto", marginBottom: "auto", fontSize: "1.5rem"}}>Center on Unit Updates</p>
+                <label className="switch">
+                    <input checked={shouldCenterAroundNewUnitUpdates} type="checkbox" onChange={(e) => {
+                        setShouldCenterAroundNewUnitUpdates(e?.target?.checked || false);
+                    }}></input>
+                    <span className="slider round"></span>
                 </label>
                 <Button variant="primary" onClick={() => {
                     setShow(true);

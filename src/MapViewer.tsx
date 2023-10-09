@@ -8,6 +8,7 @@ interface IMapViewerProps {
     isWireframeMode: boolean,
     mapTransparency: number,
     selectedUnitIdx: number,
+    shouldCenterAroundNewUnitUpdates: boolean
 }
 
 function getCesiumMaterialFromUnitColor(unitColor: UnitColor): Cesium.Color {
@@ -178,7 +179,7 @@ function MapViewer(props: IMapViewerProps) {
                     height
                 );
 
-                if (props?.selectedUnitIdx === -1 || props?.selectedUnitIdx === undefined) {
+                if (props?.shouldCenterAroundNewUnitUpdates && (props?.selectedUnitIdx === -1 || props?.selectedUnitIdx === undefined)) {
                     setViewerCenter(cesiumLongLatHeight);
                 }
 
