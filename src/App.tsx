@@ -12,6 +12,7 @@ import Button from 'react-bootstrap/Button';
 import Modal from 'react-bootstrap/Modal';
 import Form from 'react-bootstrap/Form';
 import InputGroup from 'react-bootstrap/InputGroup';
+import queryString from 'query-string';
 
 function getUnitColorFromId(idIn: any): UnitColor {
     const id = `${idIn}`.trim();
@@ -36,6 +37,7 @@ function App() {
     const [mapTransparency, setMapTransparency] = useState(1.0);
     const [selectedUnitIdx, setSelectedUnitIdx] = useState(-1);
     const [socket, setSocket] = useState<undefined | Socket>();
+    const [enableTransparency, setEnableTransparency] = useState(queryString?.parse(location?.search || "")?.is_transparent === "true");
 
     const [shouldCenterAroundNewUnitUpdates, setShouldCenterAroundNewUnitUpdates] = useState(true);
 
@@ -74,6 +76,10 @@ function App() {
             key: 4
         }
     ]);
+
+    useEffect(() => {
+        setMapTransparency(enableTransparency ? 0.5 : 1.0);
+    }, [enableTransparency]);
 
     // setup socket listeners
     useEffect(() => {
@@ -330,6 +336,13 @@ function App() {
                 <label className="switch">
                     <input checked={shouldCenterAroundNewUnitUpdates} type="checkbox" onChange={(e) => {
                         setShouldCenterAroundNewUnitUpdates(e?.target?.checked || false);
+                    }}></input>
+                    <span className="slider round"></span>
+                </label>
+                <p style={{marginRight: "10px", marginTop: "auto", marginBottom: "auto", fontSize: "1.5rem"}}>Transparency</p>
+                <label className="switch">
+                    <input checked={enableTransparency} type="checkbox" onChange={(e) => {
+                        setEnableTransparency(e?.target?.checked || false);
                     }}></input>
                     <span className="slider round"></span>
                 </label>
