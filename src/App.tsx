@@ -38,6 +38,7 @@ function App() {
     const [selectedUnitIdx, setSelectedUnitIdx] = useState(-1);
     const [socket, setSocket] = useState<undefined | Socket>();
     const [enableTransparency, setEnableTransparency] = useState(queryString?.parse(location?.search || "")?.is_transparent === "true");
+    const [transmitCompetitionData, setTransmitCompetitionData] = useState<boolean | undefined>(undefined);
 
     const [shouldCenterAroundNewUnitUpdates, setShouldCenterAroundNewUnitUpdates] = useState(true);
 
@@ -87,6 +88,11 @@ function App() {
             autoConnect: true
         });
         setSocket(socket);
+        socket.on('transmit-comp-data', (val) => {
+            console.debug("Got transmit comp data as ", val, " from server");
+            setTransmitCompetitionData(val);
+        });
+        socket.emit("transmit-comp-data", transmitCompetitionData);
         socket.on('connect', () => {
             console.debug("Connected to socket server");
         });
@@ -346,6 +352,19 @@ function App() {
                     }}></input>
                     <span className="slider round"></span>
                 </label>
+                {
+                    (socket !== undefined && transmitCompetitionData !== undefined) &&
+                        <>
+                            <p style={{marginRight: "10px", marginTop: "auto", marginBottom: "auto", fontSize: "1.5rem"}}>Transmit</p>
+                            <label className="switch">
+                                <input checked={transmitCompetitionData} type="checkbox" onChange={(e) => {
+                                    // setTransmitCompetitionData(e?.target?.checked || false);
+                                    socket.emit("transmit-comp-data", !transmitCompetitionData);
+                                }}></input>
+                                <span className="slider round"></span>
+                            </label>
+                        </>
+                }
                 <Button variant="primary" onClick={() => {
                     setShow(true);
                 }}>
